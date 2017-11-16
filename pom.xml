@@ -2,7 +2,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>cz.hard456.helloworld</groupId>
-    <artifactId>helloworld</artifactId>
+    <artifactId>dbm-rdf</artifactId>
     <packaging>war</packaging>
     <version>1.0-SNAPSHOT</version>
 
@@ -63,6 +63,13 @@
             <version>2.6</version>
         </dependency>
         <!-- END FOR MULTIPART FILE UPLOAD -->
+
+        <!-- FOR RANDOM STRING GENERATION -->
+        <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+            <version>2.6</version>
+        </dependency>
 
     </dependencies>
 

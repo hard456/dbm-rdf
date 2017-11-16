@@ -1,5 +1,6 @@
 package cz.jpalcut.dbm.controller;
 
+import org.apache.commons.lang.RandomStringUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -25,6 +26,7 @@ public class FileUploadController {
     int uploadTurtleFile(HttpServletRequest request, @RequestParam("file") MultipartFile file) {
         ModelAndView model = new ModelAndView();
         model.setViewName("file_upload");
+        RandomStringUtils.random(20,true,true);
         return 1;
     }
 
