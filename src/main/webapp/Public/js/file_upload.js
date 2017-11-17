@@ -13,7 +13,12 @@ function uploadTurtleFile() {
             contentType: false,
             processData: false,
             success: function (response) {
-               console.log(response);
+               if(response.localeCompare("0") == 0){
+                   console.log("error");
+               }
+               else{
+                   window.location.replace("/"+response+"/graph");
+               }
             }
         });
 

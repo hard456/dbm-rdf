@@ -26,5 +26,6 @@
     <!-- Resources -->
     <mvc:resources mapping="/css/**" location="Public/css/" />
     <mvc:resources mapping="/js/**" location="Public/js/" />
+    <mvc:resources mapping="/Public/ttl/**" location="Public/ttl/" />
 
 </beans>

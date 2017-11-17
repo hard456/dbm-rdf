@@ -21,3 +21,7 @@ a.link:active {
     color: #ffffff;
     text-decoration: none;
 }
+
+.wrap_text {
+    word-wrap: break-word;
+}
