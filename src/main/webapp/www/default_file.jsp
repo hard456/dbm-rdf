@@ -11,12 +11,14 @@
                     <li><a href="${pageContext.request.contextPath}/${fileID}/graph">Aggregated graph</a></li>
                     <li><a href="${pageContext.request.contextPath}/${fileID}/aggregatedFile">Aggregated file</a></li>
                 </ul>
+                <button class="btn btn-secondary">TTL</button>
             </div>
         </div>
 
-            <div class="wrap_text" style="padding: 12px; margin: 0 8px 8px 8px; background: #eeeeee; max-width: 100%; border-radius: 5px;">
-                    ${fileContent}
-            </div>
+        <div class="wrap_text"
+             style="padding: 12px; margin: 0 8px 8px 8px; background: #eeeeee; max-width: 100%; border-radius: 5px;">
+            ${fileContent}
+        </div>
 
     </jsp:body>
 </t:main_template>

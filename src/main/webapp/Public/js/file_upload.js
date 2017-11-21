@@ -1,6 +1,9 @@
+/**
+ * Function for upload Turtle file
+ */
 function uploadTurtleFile() {
     if (document.getElementById("my-file-selector").files.length == 0) {
-        console.log("no files selected");
+        console.log("ERROR: no selected file");
     }
     else {
         var formData = new FormData();
@@ -14,13 +17,20 @@ function uploadTurtleFile() {
             processData: false,
             success: function (response) {
                if(response.localeCompare("0") == 0){
-                   console.log("error");
+                   var errorResult = '<div class="alert alert-danger">You did not send a file</div>';
+                   $('#fileUploadResult').html(errorResult);
                }
+                if(response.localeCompare("1") == 0){
+                    var errorResult = '<div class="alert alert-danger">Wrong file type</div>';
+                    $('#fileUploadResult').html(errorResult);
+                }
+                if(response.localeCompare("-1") == 0){
+                    console.log("File not closed");
+                }
                else{
                    window.location.replace("/"+response+"/graph");
                }
-            }
+            },
         });
-
     }
 }

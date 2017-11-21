@@ -9,6 +9,11 @@ import org.springframework.web.servlet.ModelAndView;
 @Controller
 public class ErrorController {
 
+    /**
+     * Handle HTTP error codes that are defined in web.xml
+     * @param error_code HTTP error code
+     * @return ModelAndView - error (VIEW), error (error code)
+     */
     @RequestMapping(value = {"/error/{error_code}"}, method = RequestMethod.GET)
     public ModelAndView loginPage(@PathVariable int error_code) {
         ModelAndView model = new ModelAndView();

@@ -3,11 +3,6 @@
 
 <script src="${pageContext.request.contextPath}/js/file_upload.js"></script>
 
-<meta name="_csrf" content="${_csrf.token}"/>
-<meta name="_csrf_header" content="${_csrf.headerName}"/>
-
-
-
 <t:main_template>
     <jsp:body>
         <%-- FILE UPLOADER --%>
@@ -34,6 +29,7 @@
                     </button>
                 </div>
             </div>
+            <div id="fileUploadResult"></div>
         </div>
     </jsp:body>
 </t:main_template>

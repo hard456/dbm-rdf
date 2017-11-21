@@ -25,3 +25,39 @@ a.link:active {
 .wrap_text {
     word-wrap: break-word;
 }
+
+
+/* For graph */
+.node {
+    stroke: #fff;
+    fill:#ddd;
+    stroke-width: 1.5px;
+}
+.link {
+    stroke: #999;
+    stroke-opacity: .6;
+    stroke-width: 1px;
+}
+marker {
+    stroke: #999;
+    fill:rgba(124,240,10,0);
+}
+.node-text {
+    font: 11px sans-serif;
+    fill:black;
+}
+.link-text {
+    font: 9px sans-serif;
+    fill:grey;
+}
+#svg-body {
+    max-width: 1350px;
+    overflow-x: auto;
+    white-space: nowrap;
+    overflow-y: hidden;
+    margin: 0 auto;
+    height: 700px;
+    border: 1px solid #DCDCDC;
+    border-radius: 5px;
+}
+/* For graph */
