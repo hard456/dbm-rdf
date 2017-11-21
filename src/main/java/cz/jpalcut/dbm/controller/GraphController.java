@@ -48,8 +48,6 @@ public class GraphController {
         BufferedReader reader;
         StringBuffer stringBuffer = new StringBuffer();
 
-//        TODO: escaping < and maybe ""
-
         try {
             String filePathToGraphsDir = servletContext.getRealPath("/Public/ttl/");
             reader = new BufferedReader(new FileReader(filePathToGraphsDir + fileID + "-default.ttl"));
