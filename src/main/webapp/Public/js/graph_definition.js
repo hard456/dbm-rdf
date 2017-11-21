@@ -4,14 +4,13 @@ var force;
 var graph;
 
 /**
- * Function for definition RDG aggregation graph
- * @param fileID
+ * Function for creation of RDG aggregation graph
  */
-function createGraph(fileID) {
+function createGraph() {
 
     $.ajax({
         type: 'POST',
-        url: "/"+fileID+"/graph/getNTriples",
+        url: window.location.href + "/getNTriples",
         dataType: "html",
         success: function (response) {
 
