@@ -12,7 +12,7 @@
                 <%-- INPUT TEXT FOR DISPLAY SELECTED FILE --%>
                 <div class="col-lg-8 col-sm-8 col-xs-12">
                     <input class="form-control" id="upload-file-info" readonly
-                           style="background: #ffffff; margin-bottom: 8px;">
+                           style="background: #ffffff; margin-bottom: 8px; color: #848484" value="Input *.ttl file">
                 </div>
                 <%-- BROWSE BUTTON --%>
                 <div class="col-lg-2 col-sm-2 col-xs-6">

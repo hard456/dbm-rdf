@@ -14,7 +14,7 @@
                     <span class="caret"></span></button>
                 <ul class="dropdown-menu">
                     <li><a href="${pageContext.request.contextPath}/${fileID}/aggregatedFile">Aggregated file</a></li>
-                    <li><a href="${pageContext.request.contextPath}/${fileID}/defaultFile">Default file</a></li>
+                    <li><a href="${pageContext.request.contextPath}/${fileID}/defaultFile/Turtle">Default file</a></li>
                 </ul>
             </div>
         </div>

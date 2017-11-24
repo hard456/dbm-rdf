@@ -48,7 +48,7 @@ marker {
 }
 .link-text {
     font: 9px sans-serif;
-    fill:grey;
+    fill: grey;
 }
 #svg-body {
     max-width: 1350px;

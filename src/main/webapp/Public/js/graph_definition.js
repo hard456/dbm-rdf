@@ -15,7 +15,7 @@ function createGraph() {
         success: function (response) {
 
             if(response.localeCompare("0") == 0){
-                console.log("ERROR - create json")
+                console.log("ERROR - IOException")
             }
             else{
                 svg = d3.select("#svg-body").append("svg")

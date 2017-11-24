@@ -48,6 +48,12 @@
             <version>2.5</version>
         </dependency>
 
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>jstl</artifactId>
+            <version>1.2</version>
+        </dependency>
+
         <!-- FOR MULTIPART FILE UPLOAD -->
             <!-- Fot multipart file upload you also have to change tomcat settings in the file: context.xml -->
             <!-- Change this: <Context> to this: <Context allowCasualMultipartParsing="true"> -->
@@ -71,7 +77,17 @@
             <version>2.6</version>
         </dependency>
 
+        <!-- JACKSON (FOR JSON) -->
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.9.2</version>
+        </dependency>
+
     </dependencies>
+
+
 
     <build>
         <finalName>dbm-rdf</finalName>

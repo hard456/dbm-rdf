@@ -32,7 +32,7 @@
 <%-- HEADER --%>
 <div id="header" style="background-color: #339966; height: auto; padding: 10px 0 5px 0;">
     <div style="margin: 0 auto; padding: 7px; max-width: 1000px; height: auto;">
-        <b><h4 style="color: #ffffff;"><a class="link" href="${pageContext.request.contextPath}/">RDF Graph Aggregation</a></h4></b>
+        <b><h4 style="color: #ffffff;"><a class="link" href="${pageContext.request.contextPath}/">RDF Model Aggregation</a></h4></b>
     </div>
 </div>
 

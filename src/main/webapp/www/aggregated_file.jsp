@@ -9,7 +9,7 @@
                     <span class="caret"></span></button>
                 <ul class="dropdown-menu">
                     <li><a href="${pageContext.request.contextPath}/${fileID}/graph">Aggregated graph</a></li>
-                    <li><a href="${pageContext.request.contextPath}/${fileID}/defaultFile">Default file</a></li>
+                    <li><a href="${pageContext.request.contextPath}/${fileID}/defaultFile/Turtle">Default file</a></li>
                 </ul>
                 <button class="btn btn-secondary">TTL</button>
             </div>
