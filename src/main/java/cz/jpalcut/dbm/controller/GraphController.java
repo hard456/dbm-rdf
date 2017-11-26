@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import cz.jpalcut.dbm.utils.Enum;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.util.FileManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -48,30 +50,34 @@ public class GraphController {
 
         ModelAndView model = new ModelAndView();
 
-        if(!EnumUtils.isValidEnum(Enum.RDFModelType.class, modelType)){
+        if (!EnumUtils.isValidEnum(Enum.RDFModelType.class, modelType)) {
             model.addObject("error", 404);
             model.setViewName("error");
             return model;
         }
 
         String realModelType = Enum.RDFModelType.valueOf(modelType).toString();
-
         String ttlPath = servletContext.getRealPath("/Public/ttl/");
         FileManager.get().addLocatorClassLoader(FileUploadController.class.getClassLoader());
-        Model loadModel = FileManager.get().loadModel(ttlPath + fileID + "-default.ttl");
-        ByteArrayOutputStream os = new ByteArrayOutputStream();
-        loadModel.write(os, realModelType);
-        String modelContent = null;
-        try {
-            modelContent = new String(os.toByteArray(),"UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-        modelContent = modelContent.replaceAll("<", "&#60;").replaceAll(" ", "&nbsp;").replaceAll("\n","<br>");
 
-        model.addObject("RDFModelType",modelType);
+        String modelContent = null;
+
+        try {
+            Model loadModel = FileManager.get().loadModel(ttlPath + fileID + "-default.ttl");
+            ByteArrayOutputStream os = new ByteArrayOutputStream();
+            loadModel.write(os, realModelType);
+            modelContent = new String(os.toByteArray(), "UTF-8");
+        } catch (Exception e) {
+            model.addObject("error", 404);
+            model.setViewName("error");
+            return model;
+        }
+
+        modelContent = modelContent.replaceAll("<", "&#60;").replaceAll(" ", "&nbsp;").replaceAll("\n", "<br>");
+
+        model.addObject("RDFModelType", modelType);
         model.addObject("RDFModelEnum", Enum.RDFModelType.values());
-        model.addObject("fileContent",modelContent);
+        model.addObject("fileContent", modelContent);
         model.addObject("fileID", fileID);
 
         model.setViewName("default_file");
@@ -119,15 +125,22 @@ public class GraphController {
      * @param fileID
      * @return String that contain N-Triples in JSON format
      */
-    @RequestMapping(value = "/{id}/graph/getNTriples", method = RequestMethod.POST)
+    @RequestMapping(value = "/{id}/graph/getNTriples", method = RequestMethod.POST, produces = "text/plain;charset=UTF-8")
     public @ResponseBody
     String getNTriples(@PathVariable("id") String fileID) {
 
         String ttlPath = servletContext.getRealPath("/Public/ttl/");
         FileManager.get().addLocatorClassLoader(FileUploadController.class.getClassLoader());
-        Model loadModel = FileManager.get().loadModel(ttlPath + fileID + "-default.ttl");
-        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        Model loadModel;
 
+        try {
+            loadModel = FileManager.get().loadModel(ttlPath + fileID + "-default.ttl");
+        }
+        catch (Exception e){
+            return "1";
+        }
+
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
         loadModel.write(os, "N-Triples");
 
         BufferedReader reader = new BufferedReader(new StringReader(os.toString()));
@@ -136,33 +149,29 @@ public class GraphController {
         ArrayNode arrayNode = mapper.createArrayNode();
         ObjectNode objectNode = mapper.createObjectNode();
 
-        String line;
-
+        StmtIterator iterator = loadModel.listStatements();
         int k = 0;
-        try {
-            while ((line = reader.readLine()) != null) {
-                //TODO: fix split not working because space
-                line = new String(line.getBytes(),"UTF-8");
-                String[] splited = line.split("\\s+");
-                objectNode = mapper.createObjectNode();
-                objectNode.put("subject", splited[0]);
-                objectNode.put("predicate", splited[1]);
-                objectNode.put("object", splited[2]);
-
-                // TODO: Change to aggregation file and delete this
-                k++;
-                if (k < 100) {
-                    arrayNode.add(objectNode);
-                }
+        while (iterator.hasNext()) {
+            Statement statement = iterator.next();
+            objectNode = mapper.createObjectNode();
+            objectNode.put("subject", statement.getSubject().toString());
+            objectNode.put("predicate", statement.getPredicate().toString());
+            objectNode.put("object", statement.getObject().toString());
+            arrayNode.add(objectNode);
+            // TODO: Change to aggregation file and delete this
+            k++;
+            if (k > 100) {
+                break;
             }
+        }
 
+        try {
             reader.close();
-
-            return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(arrayNode);
-
+            return mapper.writeValueAsString(arrayNode);
         } catch (IOException e) {
             return "0";
         }
+
     }
 
 
