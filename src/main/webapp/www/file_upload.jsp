@@ -5,21 +5,21 @@
 
 <t:main_template>
     <jsp:body>
-        <%-- FILE UPLOADER --%>
+         <%--FILE UPLOADER--%>
         <div class="container" style="max-width: 1000px; margin-top: 70px;">
 
             <div class="row">
                 <%-- INPUT TEXT FOR DISPLAY SELECTED FILE --%>
                 <div class="col-lg-8 col-sm-8 col-xs-12">
                     <input class="form-control" id="upload-file-info" readonly
-                           style="background: #ffffff; margin-bottom: 8px; color: #848484" value="Input *.ttl file">
+                           style="background: #ffffff; margin-bottom: 8px; color: #848484" value="Input for *.ttl,*.owl,*.rdf,*.nt files">
                 </div>
                 <%-- BROWSE BUTTON --%>
                 <div class="col-lg-2 col-sm-2 col-xs-6">
                     <label class="btn btn-primary" for="my-file-selector" style="width: 100%">
                         <input name="file" id="my-file-selector" type="file" style="display:none;"
                                onchange="$('#upload-file-info').val(this.files[0].name);"
-                               accept=".ttl">
+                               accept=".ttl,.owl,.nt,.rdf" accept-charset="UTF-8">
                         Browse
                     </label>
                 </div>
