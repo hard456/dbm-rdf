@@ -7,7 +7,7 @@
         http://www.springframework.org/schema/context/spring-context-3.0.xsd http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd">
 
     <!-- Base package scanning -->
-    <context:component-scan base-package="cz.jpalcut.dbm" />
+    <context:component-scan base-package="cz.jpalcut.dbm"/>
 
     <!-- Settings for VIEWS -->
     <bean id="viewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
@@ -17,15 +17,16 @@
     </bean>
 
     <!-- MULTIPART FILE UPLOAD SETTINGS -->
-    <bean class="org.springframework.web.multipart.commons.CommonsMultipartResolver"
-          id="multipartResolver"> <property name="maxUploadSize" value="1000000" />
+    <bean class="org.springframework.web.multipart.commons.CommonsMultipartResolver" id="multipartResolver">
+        <property name="maxUploadSize" value="1000000"/>
+        <property name="defaultEncoding" value="UTF-8"/>
     </bean>
 
-    <mvc:annotation-driven />
+    <mvc:annotation-driven/>
 
     <!-- Resources -->
-    <mvc:resources mapping="/css/**" location="Public/css/" />
-    <mvc:resources mapping="/js/**" location="Public/js/" />
-    <mvc:resources mapping="/Public/ttl/**" location="Public/ttl/" />
+    <mvc:resources mapping="/css/**" location="Public/css/"/>
+    <mvc:resources mapping="/js/**" location="Public/js/"/>
+    <mvc:resources mapping="/Public/ttl/**" location="Public/ttl/"/>
 
 </beans>
