@@ -3,7 +3,7 @@ package cz.jpalcut.dbm.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import cz.jpalcut.dbm.utils.Enums;
+import cz.jpalcut.dbm.utils.Enum;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.util.FileManager;
@@ -48,24 +48,29 @@ public class GraphController {
 
         ModelAndView model = new ModelAndView();
 
-        if(!EnumUtils.isValidEnum(Enums.RDFModelType.class, modelType)){
+        if(!EnumUtils.isValidEnum(Enum.RDFModelType.class, modelType)){
             model.addObject("error", 404);
             model.setViewName("error");
             return model;
         }
 
-        String realModelType = Enums.RDFModelType.valueOf(modelType).toString();
+        String realModelType = Enum.RDFModelType.valueOf(modelType).toString();
 
         String ttlPath = servletContext.getRealPath("/Public/ttl/");
         FileManager.get().addLocatorClassLoader(FileUploadController.class.getClassLoader());
         Model loadModel = FileManager.get().loadModel(ttlPath + fileID + "-default.ttl");
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         loadModel.write(os, realModelType);
-        String modelContent = os.toString();
+        String modelContent = null;
+        try {
+            modelContent = new String(os.toByteArray(),"UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
         modelContent = modelContent.replaceAll("<", "&#60;").replaceAll(" ", "&nbsp;").replaceAll("\n","<br>");
 
         model.addObject("RDFModelType",modelType);
-        model.addObject("RDFModelEnum", Enums.RDFModelType.values());
+        model.addObject("RDFModelEnum", Enum.RDFModelType.values());
         model.addObject("fileContent",modelContent);
         model.addObject("fileID", fileID);
 
@@ -136,6 +141,8 @@ public class GraphController {
         int k = 0;
         try {
             while ((line = reader.readLine()) != null) {
+                //TODO: fix split not working because space
+                line = new String(line.getBytes(),"UTF-8");
                 String[] splited = line.split("\\s+");
                 objectNode = mapper.createObjectNode();
                 objectNode.put("subject", splited[0]);
