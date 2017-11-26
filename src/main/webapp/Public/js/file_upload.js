@@ -24,7 +24,11 @@ function uploadTurtleFile() {
                     var errorResult = '<div class="alert alert-danger">Wrong file type</div>';
                     $('#fileUploadResult').html(errorResult);
                 }
-                if(response.localeCompare("-1") == 0){
+                if(response.localeCompare("2") == 0){
+                    var errorResult = '<div class="alert alert-danger">Disabled file extension</div>';
+                    $('#fileUploadResult').html(errorResult);
+                }
+                if(response.localeCompare("3") == 0){
                     console.log("File not closed");
                 }
                else{
