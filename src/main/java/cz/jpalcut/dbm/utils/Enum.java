@@ -1,9 +1,11 @@
 package cz.jpalcut.dbm.utils;
 
+import org.apache.jena.riot.Lang;
+
 /**
  * Class contains all available enums for this web app
  */
-public class Enums {
+public class Enum {
 
     /**
      * Enum of RDF Model types
@@ -25,6 +27,25 @@ public class Enums {
         @Override
         public String toString() {
             return modelType;
+        }
+
+    }
+
+    public enum RDFFileExt{
+        ttl(Lang.TTL),
+        owl(Lang.RDFXML),
+        rdf(Lang.RDFXML),
+        nt(Lang.NTRIPLES)
+        ;
+
+        private final Lang langType;
+
+        RDFFileExt(Lang langType) {
+            this.langType = langType;
+        }
+
+        public Lang getLangType(){
+            return langType;
         }
 
     }
