@@ -16,6 +16,11 @@
         <!--<property name="contentType" value="text/html;charset=UTF-8" />-->
     </bean>
 
+    <bean id="stringHttpMessageConverter"
+          class="org.springframework.http.converter.StringHttpMessageConverter">
+        <constructor-arg value="UTF-8"/>
+    </bean>
+
     <!-- MULTIPART FILE UPLOAD SETTINGS -->
     <bean class="org.springframework.web.multipart.commons.CommonsMultipartResolver" id="multipartResolver">
         <property name="maxUploadSize" value="1000000"/>
