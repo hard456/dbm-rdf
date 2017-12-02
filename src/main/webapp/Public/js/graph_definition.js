@@ -21,8 +21,6 @@ function createGraph() {
                 console.log("ERROR - fileID not exists")
             }
             else{
-                console.log(response);
-
                 svg = d3.select("#svg-body").append("svg")
                     .attr("width", 1300)
                     .attr("height", 768)
