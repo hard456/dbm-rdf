@@ -40,13 +40,18 @@ public class GraphController {
     }
 
     /**
-     * Display content of default Turtle file
-     *
+     * Display content of default/aggregated file in different formats
      * @param fileID
-     * @return ModelAndView - default_file (VIEW), fileID, fileContent (default Turtle file content)
+     * @param fileStatus ("aggregatedFile","defaultFile")
+     * @param modelType (value from Enum.RDFModelType)
+     * @return ModelAndView - fileStatus("aggregatedFile" or "defaultFile"), RDFModelType(value from Enum.RDFModelType),
+     *                        RDFModelEnum(list of Enum.RDFModelType values), fileID,
+     *                        fileContent(dat from Model in chosen format),
      */
-    @RequestMapping(value = "/{id}/defaultFile/{modelType}", method = RequestMethod.GET)
-    public ModelAndView viewDefaultFile(@PathVariable("id") String fileID, @PathVariable("modelType") String modelType) {
+    @RequestMapping(value = "/{id}/{fileStatus}/{modelType}", method = RequestMethod.GET)
+    public ModelAndView viewFileContent(@PathVariable("id") String fileID,
+                                        @PathVariable("fileStatus") String fileStatus,
+                                        @PathVariable("modelType") String modelType) {
 
         ModelAndView model = new ModelAndView();
 
@@ -56,14 +61,27 @@ public class GraphController {
             return model;
         }
 
+        if(!fileStatus.equals("defaultFile") && !fileStatus.equals("aggregatedFile")){
+            model.addObject("error", 404);
+            model.setViewName("error");
+            return model;
+        }
+
         String realModelType = Enum.RDFModelType.valueOf(modelType).toString();
         String ttlPath = servletContext.getRealPath("/Public/ttl/");
         FileManager.get().addLocatorClassLoader(FileUploadController.class.getClassLoader());
 
-        String modelContent = null;
+        String modelContent;
 
+        //To get Model in chosen format from TTL file
         try {
-            Model loadModel = FileManager.get().loadModel(ttlPath + fileID + "-default.ttl");
+            Model loadModel;
+            if(fileStatus.equals("defaultFile")){
+                loadModel = FileManager.get().loadModel(ttlPath + fileID + "-default.ttl");
+            }
+            else {
+                loadModel = FileManager.get().loadModel(ttlPath + fileID + "-aggregated.ttl");
+            }
             ByteArrayOutputStream os = new ByteArrayOutputStream();
             loadModel.write(os, realModelType);
             modelContent = new String(os.toByteArray(), "UTF-8");
@@ -75,47 +93,13 @@ public class GraphController {
 
         modelContent = modelContent.replaceAll("<", "&#60;").replaceAll(" ", "&nbsp;").replaceAll("\n", "<br>");
 
+        model.addObject("fileStatus", fileStatus);
         model.addObject("RDFModelType", modelType);
         model.addObject("RDFModelEnum", Enum.RDFModelType.values());
         model.addObject("fileContent", modelContent);
         model.addObject("fileID", fileID);
 
-        model.setViewName("default_file");
-        return model;
-    }
-
-    /**
-     * Display content of aggregated Turtle file
-     *
-     * @param fileID
-     * @return ModelAndView - aggregated_file (VIEW), fileID, fileContent (aggregated Turtle file content)
-     */
-    @RequestMapping(value = "/{id}/aggregatedFile", method = RequestMethod.GET)
-    public ModelAndView viewAggregatedFile(@PathVariable("id") String fileID) {
-
-        ModelAndView model = new ModelAndView();
-        BufferedReader reader;
-        StringBuffer stringBuffer = new StringBuffer();
-
-        try {
-            String filePathToGraphsDir = servletContext.getRealPath("/Public/ttl/");
-            reader = new BufferedReader(new FileReader(filePathToGraphsDir + fileID + "-aggregated.ttl"));
-
-            String line;
-            while ((line = reader.readLine()) != null) {
-                line = line.replaceAll("<", "&#60;").replaceAll(" ", "&nbsp;");
-                stringBuffer.append(line).append("<br>");
-            }
-        } catch (Exception e) {
-            model.addObject("error", 404);
-            model.setViewName("error");
-            return model;
-        }
-
-        model.addObject("fileContent", stringBuffer);
-        model.addObject("fileID", fileID);
-
-        model.setViewName("aggregated_file");
+        model.setViewName("file_content");
         return model;
     }
 
@@ -125,7 +109,8 @@ public class GraphController {
      * @param fileID
      * @return String that contain N-Triples in JSON format
      */
-    @RequestMapping(value = "/{id}/graph/getNTriples", method = RequestMethod.POST, produces = "text/plain;charset=UTF-8")
+    @RequestMapping(value = "/{id}/graph/getNTriples", method = RequestMethod.POST,
+            produces = "text/plain;charset=UTF-8")
     public @ResponseBody
     String getNTriples(@PathVariable("id") String fileID) {
 
@@ -134,7 +119,7 @@ public class GraphController {
         Model loadModel;
 
         try {
-            loadModel = FileManager.get().loadModel(ttlPath + fileID + "-default.ttl");
+            loadModel = FileManager.get().loadModel(ttlPath + fileID + "-aggregated.ttl");
         }
         catch (Exception e){
             return "1";
@@ -150,7 +135,7 @@ public class GraphController {
         ObjectNode objectNode = mapper.createObjectNode();
 
         StmtIterator iterator = loadModel.listStatements();
-        int k = 0;
+
         while (iterator.hasNext()) {
             Statement statement = iterator.next();
             objectNode = mapper.createObjectNode();
@@ -158,11 +143,6 @@ public class GraphController {
             objectNode.put("predicate", statement.getPredicate().toString());
             objectNode.put("object", statement.getObject().toString());
             arrayNode.add(objectNode);
-            // TODO: Change to aggregation file and delete this
-            k++;
-            if (k > 100) {
-                break;
-            }
         }
 
         try {
