@@ -13,7 +13,7 @@
                 <button class="btn btn-secondary dropdown-toggle" type="button" data-toggle="dropdown">Aggregated graph
                     <span class="caret"></span></button>
                 <ul class="dropdown-menu">
-                    <li><a href="${pageContext.request.contextPath}/${fileID}/aggregatedFile">Aggregated file</a></li>
+                    <li><a href="${pageContext.request.contextPath}/${fileID}/aggregatedFile/Turtle">Aggregated file</a></li>
                     <li><a href="${pageContext.request.contextPath}/${fileID}/defaultFile/Turtle">Default file</a></li>
                 </ul>
             </div>
