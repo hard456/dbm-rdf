@@ -9,6 +9,8 @@
         <%--FILE UPLOADER--%>
         <div class="container" style="max-width: 1000px; margin-top: 70px;">
 
+            <div class="loader" id="loader" style="margin: 20px auto 70px auto; display: none"></div>
+
             <div class="row">
                 <form:form method="post" action="${pageContext.request.contextPath}/uploadTurtleFile" enctype="multipart/form-data" id="fileUploadForm">
                         <%-- INPUT TEXT FOR DISPLAY SELECTED FILE --%>
@@ -28,7 +30,7 @@
                     </div>
                         <%-- UPLOAD BUTTON --%>
                     <div class="col-lg-2 col-sm-2 col-xs-6">
-                        <button type="button" class="btn btn-success" onclick="uploadTurtleFile()"
+                        <button id="uploadButton" type="button" class="btn btn-success" onclick="uploadTurtleFile()"
                                 style="background-color: #339966; width: 100%">Upload
                         </button>
                     </div>
