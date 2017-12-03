@@ -99,11 +99,9 @@ public class FileUploadController {
             return "3";
         }
 
-        loadModel = FileManager.get().loadModel(ttlPath + fileID + "-default.ttl");
-
         //Aggregate model
-        RDFModelAggregator aggregator = new RDFModelAggregator(loadModel);
-        Model newModel = aggregator.aggregate();
+        RDFModelAggregator aggregator = new RDFModelAggregator();
+        Model newModel = aggregator.aggregate(loadModel);
 
         byteOutstream = new ByteArrayOutputStream();
         newModel.write(byteOutstream, "Turtle");
