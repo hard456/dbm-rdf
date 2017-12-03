@@ -42,7 +42,7 @@ function createGraph() {
 }
 
 /**
- * To split relationships of objects
+ * To split object nodes with same value to different nodes
  */
 function splitObjects(){
     graph = triplesToGraph(triples, false);
@@ -52,7 +52,7 @@ function splitObjects(){
 }
 
 /**
- * To merge relationships of objects
+ * To merge object nodes with same value to one node
  */
 function mergeObjects(){
     graph = triplesToGraph(triples, true);
@@ -68,6 +68,7 @@ function filterNodesById(nodes,id){
 /**
  * Process N-Triples to Graph
  * @param triples
+ * @param objectsMerge contains true or false (true - merge same object nodes, false - split same object nodes)
  * @returns {{nodes: Array, links: Array}}
  */
 function triplesToGraph(triples, objectsMerge){
@@ -87,11 +88,8 @@ function triplesToGraph(triples, objectsMerge){
         var objNode = null;
 
         if(objectsMerge === true){
-            objNode  = filterNodesById(graph.nodes, objId)[0];
+            objNode = filterNodesById(graph.nodes, objId)[0];
         }
-
-
-
 
         if(subjNode==null){
             subjNode = {id:subjId, label:subjId, weight:1};
@@ -103,11 +101,29 @@ function triplesToGraph(triples, objectsMerge){
             graph.nodes.push(objNode);
         }
 
-
         graph.links.push({source:subjNode, target:objNode, predicate:predId, weight:1});
     });
 
-    return graph;
+
+    //To merge predicates that were point at same object (predicates called in graph as merge:predicate)
+    var newGraph={nodes:[], links:[]};
+    for (var i=0; i<graph.links.length; i++) {
+        var added = false;
+        for(var j = 0; j<graph.links.length; j++){
+            if(i !== j){
+                if(graph.links[i].source === graph.links[j].source && graph.links[i].target === graph.links[j].target){
+                    newGraph.links.push({source:graph.links[i].source, target:graph.links[i].target, predicate:"merged:predicate", weight:1});
+                    added = true;
+                }
+            }
+        }
+        if(added === false){
+            newGraph.links.push({source:graph.links[i].source, target:graph.links[i].target, predicate:graph.links[i].predicate, weight:1});
+        }
+    }
+    newGraph.nodes = graph.nodes;
+
+    return newGraph;
 }
 
 /**
