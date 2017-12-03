@@ -1,5 +1,5 @@
 /**
- * Function for upload Turtle file
+ * Function for upload file to server
  */
 function uploadTurtleFile() {
     if (document.getElementById("my-file-selector").files.length == 0) {
@@ -7,8 +7,14 @@ function uploadTurtleFile() {
     }
     else {
         var form = $('#fileUploadForm')[0];
-        console.log(form);
         var data = new FormData(form);
+
+        //Enable loading animation
+        $('#loader').css("display", "block");
+
+        //Disable buttons
+        $('#uploadButton').prop('disabled', true);
+        $('#my-file-selector').prop('disabled', true);
 
         $.ajax({
             type: "POST",
@@ -35,6 +41,14 @@ function uploadTurtleFile() {
                else{
                    window.location.replace("/"+response+"/graph");
                }
+
+               //Disable loading animation
+               $('#loader').css("display", "none");
+
+                //Enable buttons
+                $('#uploadButton').prop('disabled', true);
+                $('#my-file-selector').prop('disabled', true);
+
             },
         });
     }

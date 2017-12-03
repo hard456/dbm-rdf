@@ -4,7 +4,7 @@ var force;
 var graph;
 
 /**
- * Function for creation of RDG aggregation graph
+ * Function that using ajax to response N-Triples from server and create graph
  */
 function createGraph() {
 
@@ -30,7 +30,7 @@ function createGraph() {
 
                 force = d3.layout.force().size([1300, 768]);
 
-                graph = triplesToGraph(triples);
+                graph = triplesToGraph(triples, true);
 
                 update();
             }
@@ -39,6 +39,26 @@ function createGraph() {
     });
 
 
+}
+
+/**
+ * To split relationships of objects
+ */
+function splitObjects(){
+    graph = triplesToGraph(triples, false);
+    $('#objectMerge').attr('onclick', 'mergeObjects()');
+    $('#objectMerge').attr('value', 'Merge objects');
+    update();
+}
+
+/**
+ * To merge relationships of objects
+ */
+function mergeObjects(){
+    graph = triplesToGraph(triples, true);
+    $('#objectMerge').attr('onclick', 'splitObjects()');
+    $('#objectMerge').attr('value', 'Split objects');
+    update();
 }
 
 function filterNodesById(nodes,id){
@@ -50,7 +70,7 @@ function filterNodesById(nodes,id){
  * @param triples
  * @returns {{nodes: Array, links: Array}}
  */
-function triplesToGraph(triples){
+function triplesToGraph(triples, objectsMerge){
 
     svg.html("");
     //Graph
@@ -63,7 +83,15 @@ function triplesToGraph(triples){
         var objId = triple.object;
 
         var subjNode = filterNodesById(graph.nodes, subjId)[0];
-        var objNode  = filterNodesById(graph.nodes, objId)[0];
+
+        var objNode = null;
+
+        if(objectsMerge === true){
+            objNode  = filterNodesById(graph.nodes, objId)[0];
+        }
+
+
+
 
         if(subjNode==null){
             subjNode = {id:subjId, label:subjId, weight:1};
