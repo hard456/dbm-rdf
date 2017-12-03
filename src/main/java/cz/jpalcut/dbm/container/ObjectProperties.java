@@ -1,8 +1,11 @@
 package cz.jpalcut.dbm.container;
 
-public class RDFObjectProperties {
+/**
+ * For definition properties about object
+ */
+public class ObjectProperties {
 
-    public boolean isClass = false;
+    private boolean isClass = false;
 
     private boolean isLink = false;
 
@@ -11,6 +14,8 @@ public class RDFObjectProperties {
     private boolean isDouble = false;
 
     private boolean isString = false;
+
+    private String linkValue;
 
     private String max;
 
@@ -90,5 +95,13 @@ public class RDFObjectProperties {
 
     public void setClass(boolean aClass) {
         isClass = aClass;
+    }
+
+    public String getLinkValue() {
+        return linkValue;
+    }
+
+    public void setLinkValue(String linkValue) {
+        this.linkValue = linkValue;
     }
 }

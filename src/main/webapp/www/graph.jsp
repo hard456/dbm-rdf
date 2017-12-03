@@ -21,6 +21,12 @@
             <input type="button" class="btn btn-secondary" style="margin: 8px;" id="objectMerge" value="Split objects" onclick="splitObjects()">
         </div>
 
+        <div style="margin: 8px;">
+            <div style="margin: 0 auto; max-width: 500px;">
+                Legend: C - COUNT, H - MAX, L - MIN, A - AVERAGE, N - Namespace
+            </div>
+        </div>
+
         <div id="svg-body" class="panel-body"></div>
 
         <script>

@@ -46,7 +46,7 @@ public class GraphController {
      * @param modelType (value from Enum.RDFModelType)
      * @return ModelAndView - fileStatus("aggregatedFile" or "defaultFile"), RDFModelType(value from Enum.RDFModelType),
      *                        RDFModelEnum(list of Enum.RDFModelType values), fileID,
-     *                        fileContent(dat from Model in chosen format),
+     *                        fileContent(data from Model in chosen format),
      */
     @RequestMapping(value = "/{id}/{fileStatus}/{modelType}", method = RequestMethod.GET)
     public ModelAndView viewFileContent(@PathVariable("id") String fileID,
@@ -91,6 +91,7 @@ public class GraphController {
             return model;
         }
 
+        //replace characters
         modelContent = modelContent.replaceAll("<", "&#60;").replaceAll(" ", "&nbsp;").replaceAll("\n", "<br>");
 
         model.addObject("fileStatus", fileStatus);
@@ -136,6 +137,7 @@ public class GraphController {
 
         StmtIterator iterator = loadModel.listStatements();
 
+        //Triples to JSON
         while (iterator.hasNext()) {
             Statement statement = iterator.next();
             objectNode = mapper.createObjectNode();

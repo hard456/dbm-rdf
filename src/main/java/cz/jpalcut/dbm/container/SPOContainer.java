@@ -1,6 +1,5 @@
 package cz.jpalcut.dbm.container;
 
-import cz.jpalcut.dbm.RDFModelAggregator;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
@@ -8,13 +7,18 @@ import org.apache.jena.rdf.model.Resource;
 import java.util.List;
 import java.util.TreeMap;
 
+/**
+ * Container for subjects, predicates, objects and object properties
+ */
 public class SPOContainer {
 
     private Resource subject;
 
+    //TreeMap contains predicates as keys and objects as values
     private TreeMap<Property, RDFNode> map;
 
-    private List<RDFObjectProperties> objectProperties;
+    //List of properties about objects
+    private List<ObjectProperties> objectProperties;
 
     public Resource getSubject() {
         return subject;
@@ -32,11 +36,11 @@ public class SPOContainer {
         this.map = map;
     }
 
-    public List<RDFObjectProperties> getObjectProperties() {
+    public List<ObjectProperties> getObjectProperties() {
         return objectProperties;
     }
 
-    public void setObjectProperties(List<RDFObjectProperties> objectProperties) {
+    public void setObjectProperties(List<ObjectProperties> objectProperties) {
         this.objectProperties = objectProperties;
     }
 

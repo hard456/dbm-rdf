@@ -10,7 +10,7 @@ import org.springframework.web.servlet.ModelAndView;
 public class ErrorController {
 
     /**
-     * Handle HTTP error codes that are defined in web.xml
+     * HTTP error view
      * @param error_code HTTP error code
      * @return ModelAndView - error (VIEW), error (error code)
      */

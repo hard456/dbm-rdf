@@ -1,12 +1,11 @@
 package cz.jpalcut.dbm;
 
-import cz.jpalcut.dbm.container.RDFObjectProperties;
+import cz.jpalcut.dbm.container.ObjectProperties;
 import cz.jpalcut.dbm.container.SPOContainer;
 import org.apache.jena.rdf.model.*;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
-import java.text.NumberFormat;
 import java.util.*;
 
 public class RDFModelAggregator {
@@ -18,7 +17,7 @@ public class RDFModelAggregator {
      */
     public Model aggregate(Model model) {
 
-        List<SPOContainer> SPOlist = new ArrayList<SPOContainer>();
+        List<SPOContainer> SPOList = new ArrayList<SPOContainer>();
 
         //List of unique subjects
         List<Resource> subjects = new ArrayList<Resource>(getListOfSubjects(model.listStatements()));
@@ -40,27 +39,27 @@ public class RDFModelAggregator {
             spoContainer.setMap(newProperties);
 
             //Merge TreeMap<Property, RDFNode>
-            spoContainer = mergeObjectsOfOneInstance(spoContainer);
+            spoContainer = mergeObjectsOfOneInstance(spoContainer, model);
 
             found = false;
             int indexOfSPOContainer;
 
             //Loop SPOContainer
-            for (SPOContainer subjectProperties : SPOlist) {
+            for (SPOContainer subjectProperties : SPOList) {
 
-                //Check if SPOContainer contains subject
+                //Check if SPOList contains subject
                 if (subjectProperties.getSubject().toString().equals(subject.toString())) {
                     break;
                 }
 
                 //Check predicates and class type of two subjects
                 if (hasEqualPredicatesAndClassType(subjectProperties.getMap(), newProperties)) {
-                    indexOfSPOContainer = SPOlist.indexOf(subjectProperties);
+                    indexOfSPOContainer = SPOList.indexOf(subjectProperties);
 
                     //Merge predicates of subjects with same structure
                     subjectProperties.setObjectProperties(mergeObjectsPropertiesOfTwoInstances(
                             subjectProperties.getObjectProperties(), spoContainer.getObjectProperties()));
-                    SPOlist.set(indexOfSPOContainer, subjectProperties);
+                    SPOList.set(indexOfSPOContainer, subjectProperties);
                     found = true;
                     break;
                 }
@@ -71,8 +70,8 @@ public class RDFModelAggregator {
             if (!found) {
                 spoContainer.setSubject(subject);
                 spoContainer.setMap(newProperties);
-                spoContainer = mergeObjectsOfOneInstance(spoContainer);
-                SPOlist.add(spoContainer);
+                spoContainer = mergeObjectsOfOneInstance(spoContainer, model);
+                SPOList.add(spoContainer);
             }
         }
 
@@ -82,73 +81,136 @@ public class RDFModelAggregator {
         //Add Namespace prefixes to model
         newModel.setNsPrefixes(model.getNsPrefixMap());
 
-        transformObjectsToAggregatedValues(SPOlist, model);
+        //Transform values of objects
+        SPOList = transformObjectsToAggregatedValues(SPOList, model);
 
         //Input new aggregated Triples into model
-        newModel = inputTriplesIntoModel(SPOlist, newModel);
+        newModel = inputTriplesIntoModel(SPOList, newModel);
 
         return newModel;
     }
 
-    private void transformObjectsToAggregatedValues(List<SPOContainer> SPOlist, Model model) {
-        List<RDFObjectProperties> properties;
+    /**
+     * Method that transform values to objects to aggregated values
+     *
+     * @param SPOList container of subject, predicates, objects a properties of objects
+     * @param model
+     */
+    private List<SPOContainer> transformObjectsToAggregatedValues(List<SPOContainer> SPOList, Model model) {
+
+        List<ObjectProperties> properties;
         List<Property> predicates;
         List<RDFNode> objects;
         TreeMap<Property, RDFNode> newMap;
         String newValue;
         SPOContainer spoContainer;
 
+        //For decimal format output
         DecimalFormatSymbols sym = DecimalFormatSymbols.getInstance();
         sym.setDecimalSeparator('.');
         DecimalFormat df = new DecimalFormat("#.###");
         df.setDecimalFormatSymbols(sym);
 
-        for (int i = 0; i < SPOlist.size(); i++) {
+        //Loop subjects
+        for (int i = 0; i < SPOList.size(); i++) {
             newMap = new TreeMap<Property, RDFNode>(new PredicateComparator());
-            spoContainer = SPOlist.get(i);
+            spoContainer = SPOList.get(i);
             properties = spoContainer.getObjectProperties();
             objects = new ArrayList<RDFNode>(spoContainer.getMap().values());
             predicates = new ArrayList<Property>(spoContainer.getMap().keySet());
             RDFNode node;
+
+            //Loop properties of objects
             for (int j = 0; j < properties.size(); j++) {
 
-                if (properties.get(j).isClass()) {
-                    node = objects.get(j);
-                } else if (properties.get(j).isInteger()) {
-                    newValue = "C:" + String.valueOf(properties.get(j).getCount()) + " ";
-                    newValue += "H:" + properties.get(j).getMax() + " ";
-                    newValue += "L:" + properties.get(j).getMin() + " ";
-                    newValue += "A:" + df.format((float)Integer.parseInt(properties.get(j).getSum()) / properties.get(j).getCount());
-                    node = model.createLiteral(newValue);
-                } else if (properties.get(j).isDouble()) {
-                    newValue = "C:" + String.valueOf(properties.get(j).getCount()) + " ";
-                    newValue += "H:" + properties.get(j).getMax() + " ";
-                    newValue += "L:" + properties.get(j).getMin() + " ";
-
-                    newValue += "A:" + df.format(Double.parseDouble(properties.get(j).getSum()) / properties.get(j).getCount());
-                    node = model.createLiteral(newValue);
+                //Set new value for object
+                if (properties.get(j).getCount() == 1) {
+                    if(properties.get(j).isClass()){
+                        node = objects.get(j);
+                    }
+                    else if (properties.get(j).isLink()) {
+                        node = model.createLiteral("N:" + getMapKeyByValue(model.getNsPrefixMap(), properties.get(j).getLinkValue()));
+                    } else {
+                        if (objects.get(j).isResource()) {
+                            newValue = objects.get(j).asResource().toString();
+                            int indexOfLastSlash = newValue.lastIndexOf("/");
+                            newValue = newValue.subSequence(0, indexOfLastSlash + 1).toString();
+                            node = model.createLiteral(newValue);
+                        } else {
+                            node = objects.get(j);
+                        }
+                    }
                 } else {
-                    newValue = "C:" + String.valueOf(properties.get(j).getCount());
-                    node = model.createLiteral(newValue);
+                    //Check properties of object to set new value
+                    if (properties.get(j).isInteger()) {
+                        newValue = "C:" + String.valueOf(properties.get(j).getCount()) + " ";
+                        newValue += "H:" + properties.get(j).getMax() + " ";
+                        newValue += "L:" + properties.get(j).getMin() + " ";
+                        newValue += "A:" + df.format((float) Integer.parseInt(properties.get(j).getSum()) / properties.get(j).getCount());
+                        node = model.createLiteral(newValue);
+                    } else if (properties.get(j).isDouble()) {
+                        newValue = "C:" + String.valueOf(properties.get(j).getCount()) + " ";
+                        newValue += "H:" + properties.get(j).getMax() + " ";
+                        newValue += "L:" + properties.get(j).getMin() + " ";
+                        newValue += "A:" + df.format(Double.parseDouble(properties.get(j).getSum()) / properties.get(j).getCount());
+                        node = model.createLiteral(newValue);
+                    } else if (properties.get(j).isLink()) {
+                        String pom = getMapKeyByValue(model.getNsPrefixMap(), properties.get(j).getLinkValue());
+                        if (pom == null) {
+                            pom = "different";
+                        }
+                        newValue = "C:" + String.valueOf(properties.get(j).getCount()) + " ";
+                        newValue += "N:" + pom;
+                        node = model.createLiteral(newValue);
+                    } else {
+                        if (objects.get(j).isResource()) {
+                            newValue = objects.get(j).asResource().toString();
+                            int indexOfLastSlash = newValue.lastIndexOf("/");
+                            newValue = newValue.subSequence(0, indexOfLastSlash + 1).toString();
+                            newValue = "C:" + String.valueOf(properties.get(j).getCount() + " N:" + newValue);
+                            node = model.createLiteral(newValue);
+                        } else {
+                            newValue = "C:" + String.valueOf(properties.get(j).getCount());
+                            node = model.createLiteral(newValue);
+                        }
+                    }
                 }
+                //Add predicate and object to TreeMap
                 newMap.put(predicates.get(j), node);
             }
+            //Set new map of predicates and objects
             spoContainer.setMap(newMap);
         }
-//        SPOlist = newList;
+        //return new aggregated TreeMap
+        return SPOList;
     }
 
-    private List<RDFObjectProperties> mergeObjectsPropertiesOfTwoInstances(List<RDFObjectProperties> first, List<RDFObjectProperties> second) {
-        List<RDFObjectProperties> list = new ArrayList<RDFObjectProperties>();
+    /**
+     * To merge properties about objects of two different instances (instances of same type)
+     *
+     * @param first  properties of first list
+     * @param second properties of second list
+     * @return merged list of properties about objects
+     */
+    private List<ObjectProperties> mergeObjectsPropertiesOfTwoInstances(List<ObjectProperties> first, List<ObjectProperties> second) {
+        List<ObjectProperties> list = new ArrayList<ObjectProperties>();
+        //Loop properties
         for (int i = 0; i < first.size(); i++) {
+            //Set properties
             if (first.get(i).isClass()) {
                 list.add(first.get(i));
             } else if (first.get(i).isInteger() && second.get(i).isInteger()) {
                 list.add(mergePredicatePropertiesAsInteger(first.get(i), second.get(i)));
             } else if (first.get(i).isDouble() && second.get(i).isDouble()) {
                 list.add(mergePredicatePropertiesAsDouble(first.get(i), second.get(i)));
+            } else if (first.get(i).isLink() && second.get(i).isLink()) {
+                first.get(i).setCount(first.get(i).getCount() + second.get(i).getCount());
+                if (!first.get(i).getLinkValue().equals(second.get(i).getLinkValue())) {
+                    first.get(i).setLinkValue("different");
+                }
+                list.add(first.get(i));
             } else {
-                RDFObjectProperties objectProperties = new RDFObjectProperties();
+                ObjectProperties objectProperties = new ObjectProperties();
                 objectProperties.setString(true);
                 objectProperties.setCount(first.get(i).getCount() + second.get(i).getCount());
                 list.add(objectProperties);
@@ -162,7 +224,7 @@ public class RDFModelAggregator {
      *
      * @param SPOlist aggregated container
      * @param model
-     * @return
+     * @return model with added N-Triples
      */
     public Model inputTriplesIntoModel(List<SPOContainer> SPOlist, Model model) {
         for (SPOContainer spoContainer : SPOlist) {
@@ -197,9 +259,10 @@ public class RDFModelAggregator {
      * @return
      */
     public TreeMap<Property, RDFNode> getPredicatesWithObjectsBySubject(StmtIterator iterator, Resource subject) {
-        //Tree map with sorting predicates
+
         TreeMap<Property, RDFNode> sortedMap = new TreeMap<Property, RDFNode>(new PredicateComparator());
 
+        //Loop triples
         while (iterator.hasNext()) {
             Statement statement = iterator.next();
             if (statement.getSubject().toString().equals(subject.toString())) {
@@ -211,29 +274,40 @@ public class RDFModelAggregator {
     }
 
     /**
-     * To merge objects of same predicates
+     * To merge predicates of same instance and set properties of objects
      *
      * @param spoContainer contains predicates, objects and object properties of one subject
      * @return merged spoContainer
      */
-    public SPOContainer mergeObjectsOfOneInstance(SPOContainer spoContainer) {
+    public SPOContainer mergeObjectsOfOneInstance(SPOContainer spoContainer, Model model) {
         boolean checkNext;
-        int k;
-        List<RDFObjectProperties> listOfPropPredicates = new ArrayList<RDFObjectProperties>();
+        int k, index;
+        String namespace;
+        List<ObjectProperties> listOfPropPredicates = new ArrayList<ObjectProperties>();
         TreeMap<Property, RDFNode> newPropertiesMap = new TreeMap<Property, RDFNode>(new PredicateComparator());
-        RDFObjectProperties predicateProperties;
+        ObjectProperties predicateProperties;
         TreeMap<Property, RDFNode> properties = spoContainer.getMap();
         List<Property> keys = new ArrayList<Property>(properties.keySet());
         List<RDFNode> objects = new ArrayList<RDFNode>(properties.values());
+
+        //Loop properties
         for (int i = 0; i < keys.size(); i++) {
 
+            //Set property of objects
+            if (objects.get(i).toString().contains("^^")) {
+                index = objects.get(i).toString().indexOf("^^");
+                objects.set(i, model.createLiteral((String) objects.get(i).toString().subSequence(0, index)));
+            }
+
             if (keys.get(i).toString().equals("http://www.w3.org/1999/02/22-rdf-syntax-ns#type")) {
-                predicateProperties = new RDFObjectProperties();
+                predicateProperties = new ObjectProperties();
                 predicateProperties.setClass(true);
             } else if (isInteger(objects.get(i))) {
                 predicateProperties = definePredicateAsInteger(objects.get(i).toString());
             } else if (isDouble(objects.get(i))) {
                 predicateProperties = definePredicateAsDouble(objects.get(i).toString());
+            } else if ((namespace = getNamespace(objects.get(i), model)) != null) {
+                predicateProperties = definePredicateAsLink(namespace);
             } else {
                 predicateProperties = definePredicateAsString();
             }
@@ -241,14 +315,36 @@ public class RDFModelAggregator {
             checkNext = true;
             k = 1;
 
+            //To merge same properties
             while (checkNext && i + k < keys.size()) {
                 if (!keys.get(i).toString().equals(keys.get(i + k).toString())) {
                     checkNext = false;
                 } else {
+
+                    //Set properties of object for same predicates
+                    if (objects.get(i + k).toString().contains("^^")) {
+                        index = objects.get(i + k).toString().indexOf("^^");
+                        objects.set(i + k, model.createLiteral((String) objects.get(i + k).toString().subSequence(0, index)));
+                    }
+
+                    if (predicateProperties.isClass()) {
+                        break;
+                    }
                     if (predicateProperties.isInteger() && isInteger(objects.get(i + k))) {
                         predicateProperties = mergePredicatesAsInteger(predicateProperties, objects.get(i + k).toString());
                     } else if (predicateProperties.isDouble() && isDouble(objects.get(i + k))) {
                         predicateProperties = mergePredicatesAsDouble(predicateProperties, objects.get(i + k).toString());
+                    } else if (getNamespace(objects.get(i), model) != null && getNamespace(objects.get(i + k), model) != null) {
+                        namespace = predicateProperties.getLinkValue();
+                        String namespaceSecond = getNamespace(objects.get(i + k), model);
+                        predicateProperties.setCount(predicateProperties.getCount() + 1);
+                        if (namespace.equals(namespaceSecond)) {
+                            predicateProperties.setLinkValue(namespace);
+                            predicateProperties.setLink(true);
+                        } else {
+                            predicateProperties.setLinkValue("different");
+                            predicateProperties.setLink(true);
+                        }
                     } else {
                         predicateProperties = mergePredicatesAsString(predicateProperties);
                     }
@@ -332,6 +428,23 @@ public class RDFModelAggregator {
         }
     }
 
+    /**
+     * To get namespace of object
+     *
+     * @param object
+     * @param model
+     * @return null - not contain namespace, else namespace as string
+     */
+    private String getNamespace(RDFNode object, Model model) {
+        List<String> namespaces = new ArrayList<String>(model.getNsPrefixMap().values());
+        for (String prefix : namespaces) {
+            if (object.toString().contains(prefix)) {
+                return prefix;
+            }
+        }
+        return null;
+    }
+
 
     /**
      * To define predicate as Integer
@@ -339,8 +452,8 @@ public class RDFModelAggregator {
      * @param value String value of object
      * @return
      */
-    private RDFObjectProperties definePredicateAsInteger(String value) {
-        RDFObjectProperties properties = new RDFObjectProperties();
+    private ObjectProperties definePredicateAsInteger(String value) {
+        ObjectProperties properties = new ObjectProperties();
         properties.setInteger(true);
         properties.setMin(value);
         properties.setMax(value);
@@ -355,8 +468,8 @@ public class RDFModelAggregator {
      * @param value String value of object
      * @return
      */
-    private RDFObjectProperties definePredicateAsDouble(String value) {
-        RDFObjectProperties properties = new RDFObjectProperties();
+    private ObjectProperties definePredicateAsDouble(String value) {
+        ObjectProperties properties = new ObjectProperties();
         properties.setDouble(true);
         properties.setMin(value);
         properties.setMax(value);
@@ -370,9 +483,23 @@ public class RDFModelAggregator {
      *
      * @return
      */
-    private RDFObjectProperties definePredicateAsString() {
-        RDFObjectProperties properties = new RDFObjectProperties();
+    private ObjectProperties definePredicateAsString() {
+        ObjectProperties properties = new ObjectProperties();
         properties.setString(true);
+        properties.setCount(1);
+        return properties;
+    }
+
+    /**
+     * To define predicate as link
+     *
+     * @param namespace
+     * @return
+     */
+    private ObjectProperties definePredicateAsLink(String namespace) {
+        ObjectProperties properties = new ObjectProperties();
+        properties.setLink(true);
+        properties.setLinkValue(namespace);
         properties.setCount(1);
         return properties;
     }
@@ -384,7 +511,7 @@ public class RDFModelAggregator {
      * @param value               string value of object
      * @return
      */
-    private RDFObjectProperties mergePredicatesAsInteger(RDFObjectProperties predicateProperties, String value) {
+    private ObjectProperties mergePredicatesAsInteger(ObjectProperties predicateProperties, String value) {
         int number = Integer.parseInt(value);
         int sum = Integer.parseInt(predicateProperties.getSum()) + number;
 
@@ -408,7 +535,7 @@ public class RDFModelAggregator {
      * @param value               string value of object
      * @return
      */
-    private RDFObjectProperties mergePredicatesAsDouble(RDFObjectProperties predicateProperties, String value) {
+    private ObjectProperties mergePredicatesAsDouble(ObjectProperties predicateProperties, String value) {
         double number = Double.parseDouble(value);
         double sum = Double.parseDouble(predicateProperties.getSum()) + number;
 
@@ -425,8 +552,14 @@ public class RDFModelAggregator {
         return predicateProperties;
     }
 
-
-    private RDFObjectProperties mergePredicatePropertiesAsInteger(RDFObjectProperties first, RDFObjectProperties second) {
+    /**
+     * To merge object properties as Integer of same predicates
+     *
+     * @param first  properties of first object
+     * @param second properties of second object
+     * @return merged properties
+     */
+    private ObjectProperties mergePredicatePropertiesAsInteger(ObjectProperties first, ObjectProperties second) {
         int sum = Integer.parseInt(first.getSum()) + Integer.parseInt(second.getSum());
 
         if (Integer.parseInt(first.getMax()) > Integer.parseInt(second.getMax())) {
@@ -446,7 +579,14 @@ public class RDFModelAggregator {
         return first;
     }
 
-    private RDFObjectProperties mergePredicatePropertiesAsDouble(RDFObjectProperties first, RDFObjectProperties second) {
+    /**
+     * To merge object properties as Double of same predicates
+     *
+     * @param first  properties of first object
+     * @param second properties of second object
+     * @return merged properties
+     */
+    private ObjectProperties mergePredicatePropertiesAsDouble(ObjectProperties first, ObjectProperties second) {
         double sum = Double.parseDouble(first.getSum()) + Double.parseDouble(second.getSum());
 
         if (Double.parseDouble(first.getMax()) > Double.parseDouble(second.getMax())) {
@@ -467,18 +607,37 @@ public class RDFModelAggregator {
     }
 
     /**
-     * Merge predicate as String with already defined predicate as String
+     * Merge object properties as String with already defined predicate as String
      *
      * @param predicateProperties predicate properties
      * @return
      */
-    private RDFObjectProperties mergePredicatesAsString(RDFObjectProperties predicateProperties) {
+    private ObjectProperties mergePredicatesAsString(ObjectProperties predicateProperties) {
         predicateProperties.setString(true);
         predicateProperties.setCount(predicateProperties.getCount() + 1);
         return predicateProperties;
     }
 
-    private class PredicateComparator implements Comparator<Property>{
+    /**
+     * To get key of map by value
+     *
+     * @param map
+     * @param value
+     * @return null - value not found in map, else return key as string
+     */
+    private String getMapKeyByValue(Map<String, String> map, String value) {
+        for (String key : map.keySet()) {
+            if (value.equals(map.get(key))) {
+                return key;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Comparator for sorting TreeMap (alphabetical ordering by value of predicate)
+     */
+    private class PredicateComparator implements Comparator<Property> {
         @Override
         public int compare(Property p1, Property p2) {
             if (p2.toString().compareTo(p1.toString()) > 0) {

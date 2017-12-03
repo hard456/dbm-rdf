@@ -7,7 +7,6 @@ import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.riot.RDFDataMgr;
-import org.apache.jena.util.FileManager;
 import org.apache.jena.util.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -26,7 +25,6 @@ public class FileUploadController {
 
     /**
      * Display File upload VIEW
-     *
      * @return ModelAndView - file_upload (VIEW)
      */
     @RequestMapping(value = "/", method = RequestMethod.GET)
@@ -56,12 +54,14 @@ public class FileUploadController {
             return "0";
         }
 
+        //filename
         String fileName = file.getOriginalFilename();
 
         if (fileName == null) {
             return "1";
         }
 
+        //file extension
         String fileExt = FileUtils.getFilenameExt(fileName);
 
         if (!EnumUtils.isValidEnum(Enum.RDFFileExt.class, fileExt)) {
@@ -72,6 +72,7 @@ public class FileUploadController {
         String fileID;
         String ttlPath = servletContext.getRealPath("/Public/ttl/");
 
+        //to generate id of file
         while (true) {
             fileID = RandomStringUtils.random(25, true, true);
             if (!new File(ttlPath + fileID + "-default.ttl").exists()) {

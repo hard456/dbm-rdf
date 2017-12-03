@@ -31,6 +31,9 @@ public class Enum {
 
     }
 
+    /**
+     * Enum of file extension for upload a file
+     */
     public enum RDFFileExt{
         ttl(Lang.TTL),
         owl(Lang.RDFXML),

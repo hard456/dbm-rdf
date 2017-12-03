@@ -104,26 +104,38 @@ function triplesToGraph(triples, objectsMerge){
         graph.links.push({source:subjNode, target:objNode, predicate:predId, weight:1});
     });
 
-
-    //To merge predicates that were point at same object (predicates called in graph as merge:predicate)
-    var newGraph={nodes:[], links:[]};
-    for (var i=0; i<graph.links.length; i++) {
-        var added = false;
-        for(var j = 0; j<graph.links.length; j++){
-            if(i !== j){
-                if(graph.links[i].source === graph.links[j].source && graph.links[i].target === graph.links[j].target){
-                    newGraph.links.push({source:graph.links[i].source, target:graph.links[i].target, predicate:"merged:predicate", weight:1});
-                    added = true;
+    if(objectsMerge === true) {
+        //To merge predicates that were point at same object (predicates called in graph as merge:predicate)
+        var newGraph = {nodes: [], links: []};
+        for (var i = 0; i < graph.links.length; i++) {
+            var added = false;
+            for (var j = 0; j < graph.links.length; j++) {
+                if (i !== j) {
+                    if (graph.links[i].source === graph.links[j].source && graph.links[i].target === graph.links[j].target) {
+                        newGraph.links.push({
+                            source: graph.links[i].source,
+                            target: graph.links[i].target,
+                            predicate: "merged:predicates",
+                            weight: 1
+                        });
+                        added = true;
+                    }
                 }
             }
+            if (added === false) {
+                newGraph.links.push({
+                    source: graph.links[i].source,
+                    target: graph.links[i].target,
+                    predicate: graph.links[i].predicate,
+                    weight: 1
+                });
+            }
         }
-        if(added === false){
-            newGraph.links.push({source:graph.links[i].source, target:graph.links[i].target, predicate:graph.links[i].predicate, weight:1});
-        }
+        newGraph.nodes = graph.nodes;
+        graph = newGraph;
     }
-    newGraph.nodes = graph.nodes;
 
-    return newGraph;
+    return graph;
 }
 
 /**
