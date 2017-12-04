@@ -37,7 +37,7 @@ public class FileUploadController {
     /**
      * For upload turtle file and process him to aggregated file
      *
-     * @param file (.ttl, .owl, .rdf, .nt)
+     * @param file (.ttl, .owl)
      * @return "0" = file not exits, "1" = null filename, "2" = invalid file extension, "3" = IOException, "fileID"
      */
     @RequestMapping(value = "/uploadTurtleFile", method = RequestMethod.POST,
