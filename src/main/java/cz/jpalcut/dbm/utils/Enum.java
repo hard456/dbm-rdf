@@ -36,9 +36,7 @@ public class Enum {
      */
     public enum RDFFileExt{
         ttl(Lang.TTL),
-        owl(Lang.RDFXML),
-        rdf(Lang.RDFXML),
-        nt(Lang.NTRIPLES)
+        owl(Lang.RDFXML)
         ;
 
         private final Lang langType;

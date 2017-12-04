@@ -7,7 +7,6 @@ var graph;
  * Function that using ajax to response N-Triples from server and create graph
  */
 function createGraph() {
-
     $.ajax({
         type: 'POST',
         url: window.location.href + "/getNTriples",
