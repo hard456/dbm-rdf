@@ -39,7 +39,7 @@ function uploadTurtleFile() {
                     console.log("File not closed");
                 }
                else{
-                   window.location.replace(window.location.href+"/"+response+"/graph");
+                   window.location.replace(window.location.href+response+"/graph");
                }
 
                //Disable loading animation
