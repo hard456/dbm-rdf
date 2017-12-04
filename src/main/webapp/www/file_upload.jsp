@@ -17,14 +17,14 @@
                     <div class="col-lg-8 col-sm-8 col-xs-12">
                         <input class="form-control" id="upload-file-info" readonly
                                style="background: #ffffff; margin-bottom: 8px; color: #848484"
-                               value="Input for *.ttl,*.owl,*.rdf,*.nt files">
+                               value="Input for *.ttl,*.owl files">
                     </div>
                         <%-- BROWSE BUTTON --%>
                     <div class="col-lg-2 col-sm-2 col-xs-6">
                         <label class="btn btn-primary" for="my-file-selector" style="width: 100%">
                             <input name="file" id="my-file-selector" type="file" style="display:none;"
                                    onchange="$('#upload-file-info').val(this.files[0].name);"
-                                   accept=".ttl,.owl,.nt,.rdf">
+                                   accept=".ttl,.owl">
                             Browse
                         </label>
                     </div>
