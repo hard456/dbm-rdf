@@ -81,6 +81,9 @@ public class RDFModelAggregator {
         //Add Namespace prefixes to model
         newModel.setNsPrefixes(model.getNsPrefixMap());
 
+        //Merge instances with different predicates
+        SPOList = mergeSameInstancesWithDiffPredicates(SPOList);
+
         //Transform values of objects
         SPOList = transformObjectsToAggregatedValues(SPOList, model);
 
@@ -88,6 +91,143 @@ public class RDFModelAggregator {
         newModel = inputTriplesIntoModel(SPOList, newModel);
 
         return newModel;
+    }
+
+
+    /**
+     * Method that merge instances with same class
+     * @param SPOList
+     * @return merged SPOList
+     */
+    private List<SPOContainer> mergeSameInstancesWithDiffPredicates(List<SPOContainer> SPOList){
+
+        List<String> classesFirst;
+        List<String> classesSecond;
+
+        for (int i = 0; i < SPOList.size(); i++){
+            classesFirst = getClassesOfSubject(SPOList.get(i));
+            for (int j = i+1; j < SPOList.size(); j++){
+                classesSecond = getClassesOfSubject(SPOList.get(j));
+                if(Arrays.equals(classesFirst.toArray(), classesSecond.toArray())){
+                   SPOList.set(i,mergePredicates(SPOList.get(i),SPOList.get(j)));
+                   SPOList.remove(j);
+                   j--;
+                }
+            }
+        }
+
+        return SPOList;
+    }
+
+    /**
+     * Merge predicates of two subjects to one subject
+     * @param first container of subject
+     * @param second cotainer of subject
+     * @return merge container of subject
+     */
+    private SPOContainer mergePredicates(SPOContainer first, SPOContainer second){
+
+        List<Property> keysFirst = new ArrayList<Property>(first.getMap().keySet());
+        List<Property> keysSecond = new ArrayList<Property>(second.getMap().keySet());
+        List<RDFNode> valuesSecond = new ArrayList<RDFNode>(second.getMap().values());
+        List<ObjectProperties> propertiesFirst = first.getObjectProperties();
+        TreeMap<Property, RDFNode> newMap = first.getMap();
+
+        //Merge same predicates
+        for (int i = 0; i < keysFirst.size(); i++){
+            for (int j = 0; j<keysSecond.size(); j++){
+                ObjectProperties propFirst = propertiesFirst.get(i);
+                if(keysFirst.get(i).toString().equals(keysSecond.get(j).toString())){
+
+                    ObjectProperties propSecond = second.getObjectProperties().get(j);
+                    if(keysFirst.get(i).toString().equals("http://www.w3.org/1999/02/22-rdf-syntax-ns#type")){
+                        break;
+                    }
+                    else if(first.getObjectProperties().get(i).isInteger() && second.getObjectProperties().get(j).isInteger()){
+                        propFirst = mergePredicatePropertiesAsInteger(propFirst,propSecond);
+                    }
+                    else if(first.getObjectProperties().get(i).isDouble() && second.getObjectProperties().get(j).isDouble()){
+                        propFirst = mergePredicatePropertiesAsDouble(propFirst,propSecond);
+                    }
+                    else if(first.getObjectProperties().get(i).isLink() && second.getObjectProperties().get(j).isLink()){
+                        first.getObjectProperties().get(i).setCount(propFirst.getCount() + propSecond.getCount());
+                        if (!propFirst.getLinkValue().equals(propSecond.getLinkValue())) {
+                            propFirst.setLinkValue("different");
+                        }
+                    }
+                    else{
+                        propFirst.setCount(propFirst.getCount()+propSecond.getCount());
+                    }
+                    propertiesFirst.set(i,propFirst);
+                    break;
+                }
+            }
+        }
+
+        List<String> predicatesStrings = convertPropertyListToStringList(keysFirst);
+
+        //Add new predicates
+        for (int i = 0; i<keysSecond.size(); i++){
+            if(!predicatesStrings.contains(keysSecond.get(i).toString())){
+
+                newMap.put(keysSecond.get(i),valuesSecond.get(i));
+
+                //Add Properties of object to the position in list
+                int indexOfNewPredicate = 0;
+                for (Map.Entry<Property, RDFNode> entry : newMap.entrySet()) {
+                    if(entry.getKey().toString().equals(keysSecond.get(i).toString())){
+                        if(indexOfNewPredicate == propertiesFirst.size()-1){
+                            ObjectProperties newProp = second.getObjectProperties().get(i);
+                            propertiesFirst.add(newProp);
+                        }
+                        else{
+                            propertiesFirst.add(indexOfNewPredicate,second.getObjectProperties().get(i));
+                        }
+                        break;
+                    }
+                    indexOfNewPredicate++;
+                }
+
+            }
+
+        }
+
+        first.setMap(newMap);
+        first.setObjectProperties(propertiesFirst);
+
+        return first;
+    }
+
+    /**
+     * Convert List of Property to List of String
+     * @param predicates List of Property
+     * @return List of String
+     */
+    private List<String> convertPropertyListToStringList(List<Property> predicates) {
+        List<String> strings = new ArrayList<String>(predicates.size());
+        for (Property property : predicates) {
+            strings.add(property.toString());
+        }
+        return strings;
+    }
+
+    /**
+     * To get classes of subject
+     * @param container
+     * @return List of String contains classes of subject
+     */
+    private List<String> getClassesOfSubject(SPOContainer container){
+        List<Property> predicates = new ArrayList<Property>(container.getMap().keySet());
+        List<RDFNode> objects = new ArrayList<RDFNode>(container.getMap().values());
+        List<String> list = new ArrayList<String>();
+
+        for (int i = 0; i < predicates.size(); i++){
+            if(predicates.get(i).toString().equals("http://www.w3.org/1999/02/22-rdf-syntax-ns#type")){
+                list.add(objects.get(i).toString());
+            }
+        }
+
+        return list;
     }
 
     /**
