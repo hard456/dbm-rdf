@@ -36,7 +36,7 @@ function uploadTurtleFile() {
                     $('#fileUploadResult').html(errorResult);
                 }
                else if(response.localeCompare("3") == 0){
-                    console.log("File not closed");
+                    console.log("IOException");
                 }
                else{
                    window.location.replace(window.location.href+response+"/graph");
